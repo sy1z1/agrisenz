@@ -1,0 +1,707 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AGRISENZ Dashboard</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    /* General Styles */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    .body {
+      display: flex;
+    }
+
+/* Sidebar Styling */
+.sidebar {
+  width: 200px;
+  background-color: #2B0D36;
+  color: white;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: width 0.3s ease;
+  z-index: 2;
+}
+
+.sidebar.collapsed {
+  width: 50px;
+}
+
+.sidebar h2, .sidebar span {
+  display: inline-block;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar.collapsed h2, .sidebar.collapsed span {
+  opacity: 0;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar li {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  cursor: pointer;
+}
+
+.sidebar li img {
+  width: 20px;
+  margin-right: 10px;
+}
+
+.sidebar li a{
+    text-decoration: none;
+    color: white;
+}
+
+.sidebar li.active {
+  background: #5E057B;
+  width: 17rem;
+  border-left: white solid 5px;
+}
+
+.menu {
+  display: flex;
+}
+
+.menu button {
+  padding-top: 0.8rem;
+}
+
+.menu h2{
+  padding-left: 1rem;
+}
+
+.menu-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.menu-toggle img {
+  width: 20px;
+}
+
+/* Content Styling */
+.content {
+  margin-left: 200px;
+  transition: margin-left 0.3s ease;
+  width: 100%;
+  padding-left: 1%;
+}
+
+.sidebar.collapsed ~ .content {
+  margin-left: 50px;
+}
+
+/* Header Styling */
+.header {
+  background-color: #ffffff;
+  padding: 25px;
+  color: #5E057B;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.icon-buttons {
+  display: flex;
+  gap: 20px; /* Adds space between items */
+  align-items: center; /* Ensure items are aligned vertically */
+}
+
+.header .icon-buttons img{
+  cursor: pointer;
+  width: 24px;
+  padding-right: 10px;
+}
+
+/* Optional: Adjust text size for the p element if needed */
+.header .icon-buttons p {
+  margin-left: 0;
+  font-size: 14px;
+  cursor: default;
+}
+
+.header .icon-buttons .img1 {
+  width: 20px;
+}
+
+.header .icon-buttons .img2 {
+  width: 18px;
+}
+
+.header .icon-buttons a {
+  background-color: #5E057B;
+  color: white;
+  border: 10px;
+  padding: 30px;
+}
+
+/* Main Content */
+.main-content {
+  padding: 20px;
+  margin: 10px 0 0 10px;
+  position: relative;
+  bottom: 1rem;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 10px;
+}
+
+.title .text {
+  color: #5E057B;
+}
+
+.title .text p {
+  position: relative;
+  bottom: 10px;
+}
+
+.title a {
+  background-color: #5E057B;
+  color: white;
+  border-radius: 15px;
+  padding: 10px 15px;
+  text-decoration: none;
+}
+
+.grid {
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.value-card {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1%;
+}
+
+.bottom-card {
+  display: flex;
+}
+
+.gauge-card {
+  display: grid;
+}
+
+.card {
+  background-color: white;
+  color: white;
+  padding-left: 83%;
+  margin: 0 1% 1% 0;
+  padding: 20px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  flex-grow: 1;
+  flex-basis: calc(25.5% - 1%); /* 3 cards per row with 1% margin */
+  box-sizing: border-box;
+}
+
+.card h3 {
+  position: relative;
+  top: -20px;
+}
+
+.value-card-number {
+  font-size: 40px; /* Adjust the size of the number */
+  font-weight: bold;
+  position: relative;
+  top: -20px;
+}
+
+.value-card-unit {
+  font-size: 24px; /* Adjust the size of the unit (mg) */
+  font-weight: bold;
+  position: relative;
+  top: -30px;
+}
+.app {
+    width: 50%;
+}
+
+.gauge-container {
+    display: flex; /* Make the gauge container a flex container */
+    flex-wrap: wrap; /* Allow items to wrap */
+    justify-content: center; /* Center the items */
+}
+
+.gauge {
+    flex: 1 1 55%; /* Allow the gauge to grow and shrink, with a base width of 45% */
+    max-width: 39%; /* Set a maximum width for the gauge */
+    height: 17rem;
+    background-color: white;
+    color: #4F345E;
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    margin: 10px; /* Adjust margin for spacing */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#container1, #container2, #container3, #container4 {
+    width: 200px;
+    height: 130px;
+    margin: 0 auto;
+}
+
+.description {
+    text-align: center;
+}
+
+.progressbar__label {
+    font-size: 2.5rem;
+    transform: translate(-50%, 0) !important;
+}
+
+svg {
+    height: 180px;
+    width: 250px;
+    position: relative;
+    right: 30px;
+    bottom: 20px;
+    fill: none;
+    stroke: #c04343;
+    stroke-width: 15;
+    stroke-linecap: round;
+    filter: drop-shadow(0px 5px 4px rgba(137, 137, 137, 0.419));
+}
+
+        .map-card {
+          padding: 10px;
+          background-color: white;
+          width: 48%;
+          height: min-content;
+          padding-bottom: 44px;
+          border-radius: 8px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .graph-card {
+        width: 97%;
+        margin-left: 17px;
+        height: auto;
+        background-color: white;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 10px;
+      }
+
+        iframe {
+          width: 90%;
+          height: 500px;
+          margin: 30px 0;
+          border: none;
+          border-radius: 8px;
+          box-shadow: 0 0px 8px rgba(0, 0, 0, 0.184);
+        }
+
+        .graph-card hr{
+        
+          width: 80%;
+          border: #9027b3b6 solid 2px;
+          border-radius: 2px;
+        }
+
+
+#map {
+  height: 500px;
+  width: 100%;
+}
+
+.footer {
+            background-color: #2B0D36;
+            position: absolute;
+            left: -8px;
+            margin-top: 50px;
+            padding: 10px 0;
+            font-size: 12px;
+            color: #777;
+            display: flex;
+            justify-content: center;
+            width: 100.5%;
+        }
+
+        .footer p {
+          color: #9d9d9d;
+            font-size: 20px;
+            margin-right: 10px;
+        }
+
+        .footer img {
+            width: 4%;
+            height: 4%;
+        }
+
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 200px;
+  }
+
+  .sidebar.collapsed {
+    width: 50px;
+  }
+
+  .content {
+    margin-left: 200px;
+    width: calc(100% - 200px);
+  }
+
+  .sidebar.collapsed ~ .content {
+    margin-left: 50px;
+    width: calc(100% - 50px);
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <div class="body">
+    <div class="sidebar collapsed">
+      <div class="menu">
+        <button class="menu-toggle">
+          <img src="{% static 'Vector.png' %}" alt="Menu Icon" />
+        </button>
+      <h2>Main Menu</h2>
+      </div>
+      <ul>
+        <li class="active"><img src="{% static 'home.svg' %}" alt="Home Icon" /> <span>Home</span></li>
+        <li><a href="{% url 'report' %}"><img src="{% static 'report.svg' %}" alt="Reports Icon" /><span>Reports</span></a></li>
+        <li><img src="{% static 'setting.svg' %}" alt="Settings Icon" /> <span>Settings</span></li>
+        <li><img src="{% static 'support.svg' %}" alt="Support Icon" /> <span>Support & Documentation</span></li>
+      </ul>
+      
+    </div>
+
+    <div class="content">
+      <div class="header">
+        <img src="{% static 'agrisenz.svg' %}"></img>
+        <div class="icon-buttons">
+          <img src="{% static 'Group 21.svg' %}" alt="Notification Icon">
+          <img src="{% static 'Vector.svg' %}" alt="User Icon" class="img1">
+          <img src="{% static 'A.svg' %}" alt="Notification Icon" class="img2">
+          <img src="{% static 'Group 1220.svg' %}" alt="User Icon" class="img3">
+          <p>Hi,<b>User</b></p>
+          <img src="{% static 'Group 1219.svg' %}" alt="User Icon">
+        </div>
+      </div>
+
+      <div class="main-content" id="main-content">
+        <div class="title">
+          <div class="text">
+            <h2>Home</h2>
+            <p>Home - Dashboard</p>
+          </div>
+          <a href="{% url 'generate_report' %}">Generate Report</a>
+        </div>
+        <div class="grid">
+          <!-- Nitrogen Card -->
+           <div class="value-card">
+            <div class="card" style="background-color: #6CAEF1;">
+              <h3>Nitrogen</h3>
+              <span id="nitrogen-value" class="value-card-number">0</span> <span class="value-card-unit">mg</span>
+            </div>
+
+            <div class="card" style="background-color: #F4AE63;">
+              <h3>Phosphorus</h3>
+              <span id="phosphorus-value" class="value-card-number">0</span> <span class="value-card-unit">mg</span>
+            </div>
+
+            <div class="card" style="background-color: #808080;">
+              <h3>Potassium</h3>
+              <span id="potassium-value" class="value-card-number">0</span> <span class="value-card-unit">mg</span>
+            </div>
+
+            <div class="card" style="background-color: #FC8688;">
+              <h3>EC</h3>
+              <span id="ec-value" class="value-card-number">0</span> <span class="value-card-unit"></span>
+            </div>
+
+            <div class="card" style="background-color: #79E471;">
+              <h3>PH</h3>
+              <span id="ph-value" class="value-card-number">0</span> <span class="value-card-unit"></span>
+            </div>
+          </div>
+
+          <!-- Add other cards similarly -->
+          <div class="bottom-card">
+            <div id="app" class="app">
+              <div class="gauge-container">
+                  <div class="gauge">
+                      <h3>Soil Humidity</h3>
+                      <div id="container1"></div>
+                      <div class="description" style="color: #4F83E3;">Weekly</div>
+                  </div>
+      
+                  <div class="gauge">
+                      <h3>Soil Temperature</h3>
+                      <div id="container2"></div>
+                      <div class="description" style="color: #D69968;">Weekly</div>
+                  </div>
+      
+                  <div class="gauge">
+                      <h3>Ambient Humidity</h3>
+                      <div id="container3"></div>
+                      <div class="description" style="color: #4FC8E3;">Weekly</div>
+                  </div>
+      
+                  <div class="gauge">
+                      <h3>Ambient Temperature</h3>
+                      <div id="container4"></div>
+                      <div class="description" style="color: #FDC79C;">Weekly</div>
+                  </div>
+              </div>
+            </div>
+            <!-- Map Card -->
+            <div class="map-card">
+              <h3>Sensor Location</h3>
+              <div id="map" class="card"></div>
+            </div>
+          </div>
+          <div class="graph-card">
+            <iframe src="{% url 'graph1' %}"></iframe>
+            <br>
+            <hr>
+            <br>
+            <iframe src="{% url 'graph2' %}"></iframe>
+            <br>
+            <hr>
+            <br>
+            <iframe src="{% url 'graph3' %}"></iframe>
+          </div>
+        </div>
+        <div class="footer">
+          <p>Powered by Mapskart Technology</p>
+          <img src="{% static 'mapskart.png' %}" alt="MapsKart Logo">
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://rawgit.com/kimmobrunfeldt/progressbar.js/1.0.0/dist/progressbar.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.anychart.com/releases/8.11.0/js/anychart-base.min.js"></script>
+  <script>
+
+    document.querySelector('.menu-toggle').addEventListener('click', () => {
+      const sidebar = document.querySelector('.sidebar');
+      sidebar.classList.toggle('collapsed');
+    });
+
+        // Initialize progress bars
+        let bar1 = new ProgressBar.SemiCircle("#container1", {
+            strokeWidth: 12,
+            color: "#4F83E3", // Color for Soil Humidity
+            trailColor: "#DADADA",
+            trailWidth: 12,
+            easing: "easeInOut",
+            duration: 1400,
+            svgStyle: null,
+            text: {
+                value: "",
+                alignToBottom: false,
+                className: "progressbar__label"
+            },
+            step: (state, bar) => {
+                bar.path.setAttribute("stroke", "#4F83E3");
+                var value = Math.round(bar.value() * 100);
+                bar.setText(value ? value + "%" : ""); // Add % here
+                bar.text.style.color = state.color;
+            }
+        });
+
+        let bar2 = new ProgressBar.SemiCircle("#container2", {
+            strokeWidth: 12,
+            color: "#D69968", // Color for Soil Temperature
+            trailColor: "#DADADA",
+            trailWidth: 12,
+            easing: "easeInOut",
+            duration: 1400,
+            svgStyle: null,
+            text: {
+                value: "",
+                alignToBottom: false,
+                className: "progressbar__label"
+            },
+            step: (state, bar) => {
+                bar.path.setAttribute("stroke", "#D69968");
+                var value = Math.round(bar.value() * 100);
+                bar.setText(value ? value + "°C" : ""); // Add °C here
+                bar.text.style.color = state.color;
+            }
+        });
+
+        let bar3 = new ProgressBar.SemiCircle("#container3", {
+            strokeWidth: 12,
+            color: "#4FC8E3", // Color for Ambient Humidity
+            trailColor: "#DADADA",
+            trailWidth: 12,
+            easing: "easeInOut",
+            duration: 1400,
+            svgStyle: null,
+            text: {
+                value: "",
+                alignToBottom: false,
+                className: "progressbar__label"
+            },
+            step: (state, bar) => {
+                bar.path.setAttribute("stroke", "#4FC8E3");
+                var value = Math.round(bar.value() * 100);
+                bar.setText(value ? value + "%" : ""); // Add % here
+                bar.text.style.color = state.color;
+            }
+        });
+
+        let bar4 = new ProgressBar.SemiCircle("#container4", {
+            strokeWidth: 12,
+            color: "#FDC79C", // Color for Ambient Temperature
+            trailColor: "#DADADA",
+            trailWidth: 12,
+            easing: "easeInOut",
+            duration: 1400,
+            svgStyle: null,
+            text: {
+                value: "",
+                alignToBottom: false,
+                className: "progressbar__label"
+            },
+            step: (state, bar) => {
+                bar.path.setAttribute("stroke", "#FDC79C");
+                var value = Math.round(bar.value() * 100);
+                bar.setText(value ? value + "°C" : ""); // Add °C here
+                bar.text.style.color = state.color;
+            }
+        });
+
+        // Function to fetch data from the APIs
+        function fetchDataProgress() {
+            const apiUrls = {
+                soilHumidity: "https://sgp1.blynk.cloud/external/api/get?token=KAg_k8iVJioh6oIh16TUvoZsVjcyVpRG&v2",
+                soilTemperature: "https://sgp1.blynk.cloud/external/api/get?token=KAg_k8iVJioh6oIh16TUvoZsVjcyVpRG&v3",
+                ambientHumidity: "https://sgp1.blynk.cloud/external/api/get?token=KAg_k8iVJioh6oIh16TUvoZsVjcyVpRG&v0",
+                ambientTemperature: "https://sgp1.blynk.cloud/external/api/get?token=KAg_k8iVJioh6oIh16TUvoZsVjcyVpRG&v1"
+            };
+
+            // Fetch each data point
+            Promise.all([
+                fetch(apiUrls.soilHumidity).then(res => res.text()),
+                fetch(apiUrls.soilTemperature).then(res => res.text()),
+                fetch(apiUrls.ambientHumidity).then(res => res.text()),
+                fetch(apiUrls.ambientTemperature).then(res => res.text())
+            ])
+            .then(([soilHumidity, soilTemperature, ambientHumidity, ambientTemperature]) => {
+                bar1.animate(parseFloat(soilHumidity) / 100); // Update Soil Humidity
+                bar2.animate(parseFloat(soilTemperature) / 100); // Update Soil Temperature
+                bar3.animate(parseFloat(ambientHumidity) / 100); // Update Ambient Humidity
+                bar4.animate(parseFloat(ambientTemperature) / 100); // Update Ambient Temperature
+            })
+            .catch(error => console.error('Error fetching data:', error));
+        }
+
+        // Fetch data every 2 seconds
+        fetchDataProgress(); // Initial fetch
+        setInterval(fetchDataProgress, 2000); // Update every 2 seconds
+
+
+        // Initialize the map
+        const map = L.map('map').setView([2.915592, 101.6497], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Initialize the marker
+        const marker = L.marker([2.915592, 101.6497]).addTo(map);
+
+        // Function to fetch location data from the API
+        function fetchLocation() {
+            const apiUrl = "https://sgp1.blynk.cloud/external/api/get?token=KAg_k8iVJioh6oIh16TUvoZsVjcyVpRG&v10";
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    // Assuming the API returns an array in the format [longitude, latitude]
+                    const [longitude, latitude] = data; // Destructure the array directly
+
+                    // Update the marker position
+                    marker.setLatLng([latitude, longitude]);
+                    map.setView([latitude, longitude], 13); // Center the map on the new location
+                })
+                .catch(error => console.error('Error fetching location:', error));
+        }
+
+        // Fetch location every 10 seconds
+        fetchLocation(); // Initial fetch
+
+            // Function to fetch data from the APIs
+        function fetchDataCard() {
+            const apiUrls = {
+                nitrogen: "https://sgp1.blynk.cloud/external/api/get?token=KAg_k8iVJioh6oIh16TUvoZsVjcyVpRG&v6",
+                phosphorus: "https://sgp1.blynk.cloud/external/api/get?token=KAg_k8iVJioh6oIh16TUvoZsVjcyVpRG&v7",
+                potassium: "https://sgp1.blynk.cloud/external/api/get?token=KAg_k8iVJioh6oIh16TUvoZsVjcyVpRG&v8",
+                ec: "https://sgp1.blynk.cloud/external/api/get?token=KAg_k8iVJioh6oIh16TUvoZsVjcyVpRG&v4",
+                ph: "https://sgp1.blynk.cloud/external/api/get?token=KAg_k8iVJioh6oIh16TUvoZsVjcyVpRG&v5"
+            };
+
+            // Fetch each data point
+            Promise.all([
+                fetch(apiUrls.nitrogen).then(res => res.text()),
+                fetch(apiUrls.phosphorus).then(res => res.text()),
+                fetch(apiUrls.potassium).then(res => res.text()),
+                fetch(apiUrls.ec).then(res => res.text()),
+                fetch(apiUrls.ph).then(res => res.text())
+            ])
+            .then(([nitrogen, phosphorus, potassium, ec, ph]) => {
+                // Update the HTML elements with the fetched values
+                document.getElementById('nitrogen-value').innerText = nitrogen;
+                document.getElementById('phosphorus-value').innerText = phosphorus;
+                document.getElementById('potassium-value').innerText = potassium;
+                document.getElementById('ec-value').innerText = ec;
+                document.getElementById('ph-value').innerText = ph;
+            })
+            .catch(error => console.error('Error fetching data:', error));
+        }
+
+        // Fetch data every 2 seconds
+        fetchDataCard(); // Initial fetch
+        setInterval(fetchDataCard, 2000); // Update every 2 seconds
+
+  </script>
+</body>
+</html>

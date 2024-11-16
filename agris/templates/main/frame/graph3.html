@@ -1,0 +1,218 @@
+<html>
+<head>
+    <title>Line Chart JS</title>
+    <script src="https://cdn.anychart.com/releases/8.11.0/js/anychart-base.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style type="text/css">      
+        html, body, #container-graph { 
+            width: 100%; height: 100%; margin: 0; padding: 0; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column; /* Stack elements vertically */
+        } 
+        #frequency-selector {
+            position: relative;
+            z-index: 10;
+            top: 50px;
+            left: 400px;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-color: #ffffff;
+            border: 1px solid #602076;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 16px;
+            color: #602076;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s ease;
+            width: 200px; /* Adjust as needed */
+            box-shadow: 0 2px 4px #9027b3b6;
+        }
+
+        /* Add hover effect */
+        #frequency-selector:hover {
+            background-color: #eaeaea;
+            border-color: #888;
+        }
+
+        /* Add focus effect */
+        #frequency-selector:focus {
+            border-color: #602076;
+            box-shadow: 0 0 6px #9027b3b6;
+        }
+
+        /* Button styles */
+        #download-button {
+            z-index: 11;
+            position: relative;
+            top: 10px;
+            left: 550px;
+            padding: 5px 10px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #602076;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            box-shadow: 0 2px 4px #9027b3b6;
+        }
+
+        #download-button:hover {
+            background-color: #9027b3b6;
+        }
+
+        #error-message {
+            position: absolute;
+            color: red;
+            width: 40%;
+            font-size: 20px;
+            font-family: Arial, sans-serif;
+            display: none; /* Initially hidden */
+            text-align: center; /* Center the text */
+            margin-top: 10px; /* Add some space above */
+        }
+
+        #error-message img {
+            width: 20%; /* Set the width of the image */
+            vertical-align: middle; /* Align the image with the text */
+            margin-right: 10px; /* Space between image and text */
+        }
+        #error-message h1 {
+            font-weight: bold;
+            font-size: 20px;
+        }
+        #error-message p {
+            font-size: 15px;
+        }
+    </style>
+</head>
+{% load static %}
+<body>
+    <select id="frequency-selector">
+        <option value="30000">Every 30 seconds</option>
+        <option value="60000">Every 1 minute</option>
+        <option value="600000">Every 10 minutes</option>
+        <option value="1800000">Every 30 minutes</option>
+    </select>
+    <button id="download-button"><img src="{% static 'download.svg' %}"></button>
+    <div id="container-graph"></div>
+    <div id="error-message">
+        <img src="{% static 'disabled.svg' %}" alt="Error Icon"> <!-- Cross image -->
+        <h1>The API recording has been disabled by the admin.</h1>
+        <p>You can still get the report database and real-time data visual on the top but the graph and the API recording to the database has been stopped.</p>
+    </div>
+    <script>
+        // Initialize the chart
+        anychart.onDocumentReady(function() {
+            var chart = anychart.line();
+    
+            // Set chart title
+            chart.title("Soil Sensor Data");
+    
+            // Create an empty data set
+            var dataSet = anychart.data.set([]);
+    
+            // Set the chart data
+            chart .data(dataSet);
+    
+            // Create a line series for each sensor data type with custom colors
+            var S_Temp_Series = chart.line(dataSet.mapAs({ x: 'timestamp', value: 'S_Temp' })).name('Soil Temperature');
+            S_Temp_Series.color('#00A7E1'); // Customize Soil Temperature line color
+    
+            var S_Humid_Series = chart.line(dataSet.mapAs({ x: 'timestamp', value: 'S_Humid' })).name('Soil Humidity');
+            S_Humid_Series.color('#F4AE63'); // Customize Soil Humidity line color
+    
+            // Customize the legend
+            chart.legend().enabled(true);
+            chart.legend().fontSize(12); // Set legend font size
+            chart.legend().padding(10); // Set padding around the legend
+            chart.legend().background().fill('#FFFFFF'); // Set legend background color
+            chart.legend().itemsLayout('horizontal'); // Set layout of legend items
+    
+            // Set the container id
+            chart.container('container-graph');
+    
+            // Draw the chart
+            chart.draw();
+    
+            // Function to fetch data from the server
+            function fetchAndUpdateData() {
+                $.ajax({
+                    url: '/fetch-soil-sensor-data/',
+                    method: 'GET',
+                    success: function(response) {
+                        if (response.success) {
+                            // Clear the existing data
+                            dataSet.data([]);
+    
+                            // Determine the interval based on the selected option
+                            var interval = parseInt($('#frequency-selector').val());
+                            var filteredData = [];
+    
+                            // Reverse the response data to have the latest data on the right
+                            response.data.reverse();
+    
+                            // Add new data to the data set and filter based on the selected interval
+                            response.data.forEach(function(item, index) {
+                                if (index % (interval / 30000) === 0) { // 30000 ms = 30 seconds
+                                    filteredData.push({ x: item.timestamp, S_Temp: item.S_Temp, S_Humid: item.S_Humid });
+                                }
+                            });
+    
+                            // Update the chart with new filtered data
+                            dataSet.data(filteredData);
+                            chart.data(dataSet);
+                            $('#error-message').hide(); // Hide error message if fetching is enabled
+                        } else {
+                            // If fetching is disabled, show the error message and stop further calls
+                            $('#container-graph').hide(); // Hide the chart
+                            $('#frequency-selector').hide(); // Hide the frequency selector
+                            $('#download-button').hide(); // Hide the download button
+                            $('#error-message').show(); // Show the error message
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Failed to fetch data:', error);
+                    }
+                });
+            }
+    
+            // Fetch data initially
+            fetchAndUpdateData();
+    
+            // Set interval to fetch data every 30 seconds
+            setInterval(fetchAndUpdateData, 30000);
+    
+            // Event listener for frequency selector
+            $('#frequency-selector').change(function() {
+                fetchAndUpdateData(); // Fetch and update data when the selection changes
+            });
+        });
+    
+        // AJAX call to fetch and save data every 30 seconds
+        function fetchAndSaveData() {
+            $.ajax({
+                url: '/save-soil-sensor-data/',
+                method: 'GET',
+                success: function (response) {
+                    if (response.success) {
+                        console.log(response.message);
+                    } else {
+                        console.error(response.error);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('Failed to fetch data:', error);
+                }
+            });
+        }
+    
+        // Start fetching data when the page loads
+        setInterval(fetchAndSaveData, 30000);
+    </script>
+</body>
+</html>

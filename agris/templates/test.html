@@ -1,0 +1,405 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AGRISENZ Dashboard</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+  <style>
+    /* General Styles */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    .body {
+      display: flex;
+    }
+
+/* Sidebar Styling */
+.sidebar {
+  width: 200px;
+  background-color: #2B0D36;
+  color: white;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: width 0.3s ease;
+  z-index: 2;
+}
+
+.sidebar.collapsed {
+  width: 50px;
+}
+
+.sidebar h2, .sidebar span {
+  display: inline-block;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar.collapsed h2, .sidebar.collapsed span {
+  opacity: 0;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar li {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  cursor: pointer;
+}
+
+.sidebar li img {
+  width: 20px;
+  margin-right: 10px;
+}
+
+.sidebar li.active {
+  background: #5E057B;
+  width: 17rem;
+  border-left: white solid 5px;
+}
+
+.menu {
+  display: flex;
+}
+
+.menu button {
+  padding-top: 0.8rem;
+}
+
+.menu h2{
+  padding-left: 1rem;
+}
+
+.menu-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.menu-toggle img {
+  width: 20px;
+}
+
+/* Content Styling */
+.content {
+  margin-left: 200px;
+  transition: margin-left 0.3s ease;
+  width: 100%;
+  padding-left: 1%;
+}
+
+.sidebar.collapsed ~ .content {
+  margin-left: 50px;
+}
+
+/* Header Styling */
+.header {
+  background-color: #ffffff;
+  padding: 25px;
+  color: #5E057B;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.icon-buttons {
+  display: flex;
+  gap: 20px; /* Adds space between items */
+  align-items: center; /* Ensure items are aligned vertically */
+}
+
+.header .icon-buttons img{
+  cursor: pointer;
+  width: 24px;
+  padding-right: 10px;
+}
+
+/* Optional: Adjust text size for the p element if needed */
+.header .icon-buttons p {
+  margin-left: 0;
+  font-size: 14px;
+  cursor: default;
+}
+
+.header .icon-buttons .img1 {
+  width: 20px;
+}
+
+.header .icon-buttons .img2 {
+  width: 18px;
+}
+
+.header .icon-buttons a {
+  background-color: #5E057B;
+  color: white;
+  border: 10px;
+  padding: 30px;
+}
+
+/* Main Content */
+.main-content {
+  padding: 20px;
+  margin: 10px 0 0 10px;
+  position: relative;
+  bottom: 1rem;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 10px;
+}
+
+.title .text {
+  color: #5E057B;
+}
+
+.title .text p {
+  position: relative;
+  bottom: 10px;
+}
+
+
+.footer {
+            background-color: #2B0D36;
+            position: absolute;
+            left: -8px;
+            margin-top: 50px;
+            padding: 10px 0;
+            font-size: 12px;
+            color: #777;
+            display: flex;
+            justify-content: center;
+            width: 100.5%;
+        }
+
+        .footer p {
+          color: #9d9d9d;
+            font-size: 20px;
+            margin-right: 10px;
+        }
+
+        .footer img {
+            width: 4%;
+            height: 4%;
+        }
+
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 200px;
+  }
+
+  .sidebar.collapsed {
+    width: 50px;
+  }
+
+  .content {
+    margin-left: 200px;
+    width: calc(100% - 200px);
+  }
+
+  .sidebar.collapsed ~ .content {
+    margin-left: 50px;
+    width: calc(100% - 50px);
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <div class="body">
+    <div class="sidebar collapsed">
+      <div class="menu">
+        <button class="menu-toggle">
+          <img src="{% static 'Vector.png' %}" alt="Menu Icon" />
+        </button>
+      <h2>Main Menu</h2>
+      </div>
+      <ul>
+        <li><img src="{% static 'home.svg' %}" alt="Home Icon" /> <span>Home</span></li>
+        <li><a href="{% url 'report' %}"><img src="{% static 'report.svg' %}" alt="Reports Icon" /><span>Reports</span></a></li>
+        <li><img src="{% static 'setting.svg' %}" alt="Settings Icon" /> <span>Settings</span></li>
+        <li><img src="{% static 'support.svg' %}" alt="Support Icon" /> <span>Support & Documentation</span></li>
+      </ul>
+      
+    </div>
+
+    <div class="content">
+      <div class="header">
+        <img src="{% static 'agrisenz.svg' %}"></img>
+        <div class="icon-buttons">
+          <img src="{% static 'Group 21.svg' %}" alt="Notification Icon">
+          <img src="{% static 'Vector.svg' %}" alt="User Icon" class="img1">
+          <img src="{% static 'A.svg' %}" alt="Notification Icon" class="img2">
+          <img src="{% static 'Group 1220.svg' %}" alt="User Icon" class="img3">
+          <p>Hi,<b>User</b></p>
+          <img src="{% static 'Group 1219.svg' %}" alt="User Icon">
+        </div>
+      </div>
+
+      <div class="main-content" id="main-content">
+        <div class="container mt-4">
+            <h1>Sensor Data Report</h1>
+            
+            <!-- Settings Status -->
+            <h3>Settings Status</h3>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for setting in settings_data %}
+                    <tr>
+                        <td>{{ setting.name }}</td>
+                        <td>{{ setting.value|yesno:"Enabled,Disabled" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+    
+            <!-- API Connection Status -->
+            <h3>API Connection Status: 
+                <span class="badge {% if api_status %}bg-success{% else %}bg-danger{% endif %}">
+                    {% if api_status %}Connected{% else %}Disconnected{% endif %}
+                </span>
+            </h3>
+    
+            <!-- NPK Sensor Table -->
+            <h3>NPK Sensor Data</h3>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Nitrogen</th>
+                        <th>Phosphorus</th>
+                        <th>Potassium</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in npk_data %}
+                    <tr>
+                        <td>{{ data.timestamp }}</td>
+                        <td>{{ data.nitrogen }}</td>
+                        <td>{{ data.phosphorus }}</td>
+                        <td>{{ data.potassium }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <nav aria-label="NPK pagination">
+                <ul class="pagination">
+                    {% for page_num in npk_data.paginator.page_range %}
+                        <li class="page-item {% if npk_data.number == page_num %}active{% endif %}">
+                            <a class="page-link" href="?npk_page={{ page_num }}">{{ page_num }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </nav>
+    
+            <!-- Ambient Sensor Table -->
+            <h3>Ambient Sensor Data</h3>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Temperature</th>
+                        <th>Humidity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in ambient_data %}
+                    <tr>
+                        <td>{{ data.timestamp }}</td>
+                        <td>{{ data.A_Temp }}</td>
+                        <td>{{ data.A_Humid }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <nav aria-label="Ambient pagination">
+                <ul class="pagination">
+                    {% for page_num in ambient_data.paginator.page_range %}
+                        <li class="page-item {% if ambient_data.number == page_num %}active{% endif %}">
+                            <a class="page-link" href="?ambient_page={{ page_num }}">{{ page_num }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </nav>
+    
+            <!-- Soil Sensor Table -->
+            <h3>Soil Sensor Data</h3>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Soil Temperature</th>
+                        <th>Soil Humidity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in soil_data %}
+                    <tr>
+                        <td>{{ data.timestamp }}</td>
+                        <td>{{ data.S_Temp }}</td>
+                        <td>{{ data.S_Humid }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <nav aria-label="Soil pagination">
+                <ul class="pagination">
+                    {% for page_num in soil_data.paginator.page_range %}
+                        <li class="page-item {% if soil_data.number == page_num %}active{% endif %}">
+                            <a class="page-link" href="?soil_page={{ page_num }}">{{ page_num }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </nav>
+        </div>
+        <div class="footer">
+          <p>Powered by Mapskart Technology</p>
+          <img src="{% static 'mapskart.png' %}" alt="MapsKart Logo">
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+
+    document.querySelector('.menu-toggle').addEventListener('click', () => {
+      const sidebar = document.querySelector('.sidebar');
+      sidebar.classList.toggle('collapsed');
+    });
+  </script>
+</body>
+</html>

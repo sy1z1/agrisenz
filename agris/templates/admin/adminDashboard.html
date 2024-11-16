@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* Center content vertically and horizontally */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+        }
+
+        .container {
+            text-align: center;
+            background: white;
+            padding: 20px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        #toggle-fetching {
+            display: inline-block;
+            padding: 10px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        #toggle-fetching.enabled {
+            background-color: #4CAF50; /* Green for "Enabled" */
+        }
+
+        #toggle-fetching.disabled {
+            background-color: #f44336; /* Red for "Disabled" */
+        }
+
+        #toggle-fetching:hover {
+            transform: scale(1.05);
+        }
+
+        #status {
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Dashboard</h1>
+        <button id="toggle-fetching" 
+            class="{% if fetching_enabled %}enabled{% else %}disabled{% endif %}">
+            {% if fetching_enabled %}Disable{% else %}Enable{% endif %}
+        </button>
+        <p id="status">
+            Fetching is currently {% if fetching_enabled %}enabled{% else %}disabled{% endif %}
+        </p>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Get the initial state from the button's class
+            let fetchingEnabled = $('#toggle-fetching').hasClass('enabled');
+
+            // Function to update the button UI
+            function updateButtonState() {
+                const button = $('#toggle-fetching');
+                if (fetchingEnabled) {
+                    button.removeClass('disabled').addClass('enabled').text('Disable');
+                    $('#status').text('Fetching is currently enabled');
+                } else {
+                    button.removeClass('enabled').addClass('disabled').text('Enable');
+                    $('#status').text('Fetching is currently disabled');
+                }
+            }
+
+            // Click handler for the button
+            $('#toggle-fetching').click(function() {
+                $.ajax({
+                    url: '/toggle-fetching/',
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}' // CSRF token from the template context
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            fetchingEnabled = response.fetching_enabled; // Update state
+                            updateButtonState(); // Update the button UI
+                        } else {
+                            $('#status').text('Error: ' + response.error);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        $('#status').text('Error: ' + error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
