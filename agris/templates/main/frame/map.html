@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -110,13 +111,13 @@
     <br>
     <div class="button-container2">
         <button id="StandardButton">
-            <img class="duplicate" src="layer.png" alt="Standard Icon">
-            <img class="real" src="layer.png" alt="Standard Icon">
+            <img class="duplicate" src="{% static 'layer.png' %}" alt="Standard Icon">
+            <img class="real" src="{% static 'layer.png' %}" alt="Standard Icon">
             <span>Standard</span>
         </button>
         <button id="SatelliteButton">
-            <img class="duplicate" src="satellite.png" alt="Satellite Icon">
-            <img class="real" src="satellite.png" alt="Satellite Icon">
+            <img class="duplicate" src="{% static 'satellite' %}" alt="Satellite Icon">
+            <img class="real" src="{% static 'satellite' %}" alt="Satellite Icon">
             <span>Satellite</span>
         </button>
     </div>
