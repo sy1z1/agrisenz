@@ -98,14 +98,13 @@
         <option value="600000">Every 10 minutes</option>
         <option value="1800000">Every 30 minutes</option>
     </select>
-    <button id="download-button"><img src="{% static 'download.svg' %}"></button>
     <div id="container-graph"></div>
     <div id="error-message">
         <img src="{% static 'disabled.svg' %}" alt="Error Icon"> <!-- Cross image -->
         <h1>The API recording has been disabled by the admin.</h1>
         <p>You can still get the report database and real-time data visual on the top but the graph and the API recording to the database has been stopped.</p>
     </div>
-    <script>
+<script>
         // Initialize the chart
         var chart;
         var dataSet;
