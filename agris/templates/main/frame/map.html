@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Guides</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.8.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.8.0/mapbox-gl.js"></script>
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+        .button-container1 {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        .button-container2 {
+            position: absolute;
+            bottom: 35px;
+            left: 10px;
+            display: flex;
+        }
+        button {
+            background-color: #ffffff; /* White background */
+            color: #5f6368; /* Subtle dark gray text */
+            border: none; /* Remove default border */
+            padding: 8px 14px; /* Adjust padding for a compact look */
+            font-size: 13px; /* Slightly smaller font size */
+            cursor: pointer; /* Pointer cursor on hover */
+            border-radius: 2px; /* Slight rounded corners */
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+            font-family: Roboto, Arial, sans-serif; /* Google Maps-like font */
+            display: flex; /* Flexbox for image + text alignment */
+            align-items: center; /* Vertically center content */
+            justify-content: center; /* Center content horizontally */
+            gap: 8px; /* Space between image and text */
+        }
+
+        button:hover {
+            background-color: #f5f5f5; /* Slightly darker background on hover */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* Stronger shadow on hover */
+        }
+
+        .button-container2 button {
+            width: 40px; /* Initial width for the button */
+            height: 40px; /* Keep the button square */
+            overflow: hidden; /* Hide text initially */
+            transition: width 0.3s ease; /* Smooth transition for hover animation */
+            position: relative; /* Enable positioning for the duplicate image */
+            display: flex; /* Flexbox for alignment */
+            align-items: center; /* Vertically center content */
+            justify-content: center; /* Horizontally center duplicate image */
+            padding: 0 10px; /* Add padding for spacing */
+        }
+
+        .button-container2 button img.duplicate {
+            position: absolute; /* Center the duplicate image */
+            width: 20px; /* Fixed size */
+            height: 20px;
+            z-index: 1; /* Ensure it is above other content */
+            transition: opacity 0.3s ease; /* Smooth hiding effect */
+        }
+
+        .button-container2 button img.real,
+        .button-container2 button span {
+            opacity: 0; /* Hide initially */
+            transform: translateX(-10px); /* Slide text and real image off screen */
+            transition: opacity 0.3s ease, transform 0.3s ease; /* Smooth transition */
+            z-index: 0; /* Below the duplicate image */
+        }
+
+        .button-container2 button:hover {
+            width: 120px; /* Expand button width on hover */
+        }
+
+        .button-container2 button:hover img.duplicate {
+            opacity: 0; /* Hide duplicate image */
+        }
+
+        .button-container2 button:hover img.real,
+        .button-container2 button:hover span {
+            opacity: 1; /* Show real image and text */
+            transform: translateX(0); /* Move them into position */
+        }
+
+        .button-container2 button img.real {
+            margin-right: 8px; /* Space between real image and text */
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+
+        .button-container2 img {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px; /* Add space between icon and text */
+        }
+        img {
+            width: 16px; /* Smaller size for icons */
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div class="button-container1">
+        <button id="tiltButton">3D</button>
+        <button id="resetButton">2D</button>
+    </div>
+    <br>
+    <div class="button-container2">
+        <button id="StandardButton">
+            <img class="duplicate" src="layer.png" alt="Standard Icon">
+            <img class="real" src="layer.png" alt="Standard Icon">
+            <span>Standard</span>
+        </button>
+        <button id="SatelliteButton">
+            <img class="duplicate" src="satellite.png" alt="Satellite Icon">
+            <img class="real" src="satellite.png" alt="Satellite Icon">
+            <span>Satellite</span>
+        </button>
+    </div>
+    
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1Ijoic3lpemkiLCJhIjoiY20zbWY1dGVvMHdndDJrcHZleWZmYnk2MyJ9.AqY6hYGVQCX3vhAdI6-7ww';
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/syizi/cm3mix51t00ql01se1lwlbvy1', // Initial style
+            projection: 'globe',
+            zoom: -0.01, // Start at full earth view
+            center: [101, 3],
+            pitch: 0,
+            bearing: 0
+        });
+
+        map.addControl(new mapboxgl.NavigationControl());
+        // map.scrollZoom.disable();
+
+        map.on('style.load', () => {
+            map.setFog({});
+        });
+
+        // Add marker
+        const marker = new mapboxgl.Marker()
+            .setLngLat([101.6497, 2.915592])
+            .addTo(map);
+
+        function fetchLocation() {
+            const apiUrl = "https://sgp1.blynk.cloud/external/api/get?token=KAg_k8iVJioh6oIh16TUvoZsVjcyVpRG&v10";
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    const [longitude, latitude] = data;
+                    marker.setLngLat([longitude, latitude]);
+                })
+                .catch(error => console.error('Error fetching location:', error));
+        }
+
+        // setInterval(fetchLocation, 10000);
+        fetchLocation();
+
+        // Tilt button functionality
+        document.getElementById('tiltButton').addEventListener('click', () => {
+            map.easeTo({ pitch: 75, bearing: 45, duration: 2000 });
+        });
+
+        // Back to 2D button functionality
+        document.getElementById('resetButton').addEventListener('click', () => {
+            map.easeTo({ pitch: 0, bearing: 0, duration: 2000 });
+        });
+
+        // Standard button functionality
+        document.getElementById('StandardButton').addEventListener('click', () => {
+            map.setStyle('mapbox://styles/syizi/cm3mix51t00ql01se1lwlbvy1'); // Set to Standard style
+        });
+
+        // Satellite button functionality
+        document.getElementById('SatelliteButton').addEventListener('click', () => {
+            map.setStyle('mapbox://styles/syizi/cm3mgeba6001w01s74air5jor'); // Set to Satellite style
+        });
+
+        let isRotating = false; // To track whether the map is rotating
+        let rotationAnimationFrame; // Store the animation frame for stopping rotation
+
+        map.on('load', () => {
+            // Wait for the smooth zoom to complete
+            setTimeout(() => {
+                map.flyTo({
+                    center: [101.6497, 2.915592],
+                    zoom: 17,
+                    duration: 4000, // Adjust duration for a slower zoom
+                    pitch: 45,
+                    bearing: 200,
+                });
+
+                // Start constant rotation after the fly-to animation completes
+                setTimeout(() => {
+                    startRotation();
+                }, 4000);
+            }, 1500); // Wait 1.5 seconds before starting the zoom animation
+        });
+
+        // Function to start constant rotation
+        function startRotation() {
+            isRotating = true;
+
+            const rotate = () => {
+                if (!isRotating) return; // Stop rotation if the flag is false
+                map.setBearing((map.getBearing() + 0.1) % 360); // Increment bearing
+                rotationAnimationFrame = requestAnimationFrame(rotate); // Continue the loop
+            };
+
+            rotationAnimationFrame = requestAnimationFrame(rotate);
+        }
+
+        // Function to stop rotation smoothly and face north
+        function stopRotation() {
+            isRotating = false; // Stop the rotation loop
+            cancelAnimationFrame(rotationAnimationFrame); // Cancel the animation frame
+            map.easeTo({ bearing: 0, pitch: 0, duration: 2000 }); // Smoothly reset to north
+        }
+
+        // Tilt button functionality (3D view)
+        document.getElementById('tiltButton').addEventListener('click', () => {
+            stopRotation();
+            map.easeTo({ pitch: 75, bearing: 45, duration: 2000 });
+        });
+
+        // Back to 2D button functionality
+        document.getElementById('resetButton').addEventListener('click', () => {
+            stopRotation();
+            map.easeTo({ pitch: 0, bearing: 0, duration: 2000 });
+        });
+
+    </script>
+</body>
+</html>

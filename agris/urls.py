@@ -11,6 +11,7 @@ urlpatterns = [
     path('graph1/', views.graph1, name='graph1'),
     path('graph2/', views.graph2, name='graph2'),
     path('graph3/', views.graph3, name='graph3'),
+    path('map/', views.map, name='map'),
     path('save-sensor-data/', views.save_sensor_data, name='save_sensor_data'),
     path('fetch-sensor-data/', views.fetch_sensor_data, name='fetch_sensor_data'),
     path('save-ambient-sensor-data/', views.save_ambient_sensor_data, name='save_ambient_sensor_data'),

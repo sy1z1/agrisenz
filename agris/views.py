@@ -54,6 +54,9 @@ def graph2(request):
 def graph3(request):
     return render(request, 'main/frame/graph3.html')
 
+def map(request):
+    return render(request, 'main/frame/map.html')
+
 import requests
 from django.http import JsonResponse
 from .models import NPKSensor
