@@ -492,7 +492,7 @@ svg {
             <!-- Map Card -->
             <div class="map-card">
               <h3>Sensor Location</h3>
-              <div id="map" class="card"></div>
+              <iframe src="{% url 'map' %}" frameborder="0"></iframe>
             </div>
           </div>
           <div class="graph-card">
@@ -638,36 +638,6 @@ svg {
         fetchDataProgress(); // Initial fetch
         setInterval(fetchDataProgress, 2000); // Update every 2 seconds
 
-
-        // Initialize the map
-        const map = L.map('map').setView([2.915592, 101.6497], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
-
-        // Initialize the marker
-        const marker = L.marker([2.915592, 101.6497]).addTo(map);
-
-        // Function to fetch location data from the API
-        function fetchLocation() {
-            const apiUrl = "https://sgp1.blynk.cloud/external/api/get?token=KAg_k8iVJioh6oIh16TUvoZsVjcyVpRG&v10";
-
-            fetch(apiUrl)
-                .then(response => response.json())
-                .then(data => {
-                    // Assuming the API returns an array in the format [longitude, latitude]
-                    const [longitude, latitude] = data; // Destructure the array directly
-
-                    // Update the marker position
-                    marker.setLatLng([latitude, longitude]);
-                    map.setView([latitude, longitude], 13); // Center the map on the new location
-                })
-                .catch(error => console.error('Error fetching location:', error));
-        }
-
-        // Fetch location every 10 seconds
-        fetchLocation(); // Initial fetch
 
             // Function to fetch data from the APIs
         function fetchDataCard() {
