@@ -22,4 +22,6 @@ urlpatterns = [
     path('adminDashboard/', views.admin_dashboard, name='admin'),
     path('toggle-fetching/', views.toggle_fetching, name='toggle_fetching'),
     path('report/', views.report, name='report'),
+    path('get-frequency/', views.get_frequency, name='get_frequency'),
+    path('set-frequency/', views.set_frequency, name='set')
 ]

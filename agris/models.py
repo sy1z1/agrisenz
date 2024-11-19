@@ -31,3 +31,9 @@ class Settings(models.Model):
 
     def __str__(self):
         return self.name
+    
+class Frequency(models.Model):
+    value = models.PositiveIntegerField()  # Store frequency in milliseconds
+
+    def __str__(self):
+        return f"{self.value} ms"

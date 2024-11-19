@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import NPKSensor, AmbientSensor, SoilSensor, Settings
+from .models import NPKSensor, AmbientSensor, SoilSensor, Settings, Frequency
 
 @admin.register(NPKSensor)
 class NPKSensorDataAdmin(admin.ModelAdmin):
@@ -24,3 +24,10 @@ class SettingsDataAdmin(admin.ModelAdmin):
     list_display = ('name', 'value')
     list_filter = ('name',)
     ordering = ('-name',)
+
+@admin.register(Frequency)
+class FrequencyAdmin(admin.ModelAdmin):
+    list_display = ('value',)  
+    search_fields = ('value',)
+    ordering = ('value',)
+    fields = ('value',) 

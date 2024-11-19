@@ -78,6 +78,41 @@ import requests
 from django.http import JsonResponse
 from .models import NPKSensor
 
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import Frequency
+
+@csrf_exempt
+def set_frequency(request):
+    if request.method == 'POST':
+        try:
+            # Parse the frequency from the request
+            data = json.loads(request.body)
+            frequency = int(data.get('frequency', 0))
+
+            # Validate the frequency value
+            if frequency <= 0:
+                return JsonResponse({"success": False, "error": "Invalid frequency value. It must be greater than zero."})
+
+            # Save or update the frequency value in the database
+            Frequency.objects.all().delete()  # Ensure only one frequency entry exists
+            Frequency.objects.create(value=frequency)
+
+            return JsonResponse({"success": True, "message": "Frequency updated successfully."})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+# Endpoint to Retrieve the Current Frequency
+def get_frequency(request):
+    try:
+        # Fetch the frequency from the database
+        frequency = Frequency.objects.latest('id').value
+    except Frequency.DoesNotExist:
+        frequency = 30000  # Default to 30 seconds if not set
+
+    return JsonResponse({"success": True, "frequency": frequency})
+
 
 def is_fetching_enabled():
     try:

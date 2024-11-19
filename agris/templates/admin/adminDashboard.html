@@ -105,7 +105,9 @@
                     <option value="60000">Minutes</option>
                     <option value="3600000">Hours</option>
                 </select>
+                <button id="confirm-frequency" class="btn btn-primary" style="flex: 1; margin-left: 10px;">Confirm</button>
             </div>
+            <div id="frequency-error" style="color: red; display: none;">Invalid frequency! Please enter a valid number greater than 0.</div>
         </div>
         <br>
         <div class="mb-5">
@@ -135,6 +137,73 @@
                 });
             });
         </script>
+
+<script>
+    // Fetch the saved frequency on page load and populate the input fields
+    $(document).ready(function () {
+        $.ajax({
+            url: '/get-frequency/',
+            method: 'GET',
+            success: function (response) {
+                if (response.success) {
+                    const frequency = response.frequency;
+                    const unitOptions = [1000, 60000, 3600000]; // Seconds, Minutes, Hours
+                    let unit = 1000; // Default unit is seconds
+                    let value = frequency;
+
+                    // Determine the best unit to display the frequency
+                    for (const option of unitOptions) {
+                        if (frequency % option === 0) {
+                            unit = option;
+                            value = frequency / option;
+                            break;
+                        }
+                    }
+
+                    $('#frequency-value').val(value);
+                    $('#frequency-unit').val(unit);
+                }
+            },
+            error: function () {
+                alert('Failed to fetch the current frequency.');
+            }
+        });
+    });
+
+    // Update frequency when "Confirm" is clicked
+    $('#confirm-frequency').click(function () {
+        const value = parseInt($('#frequency-value').val());
+        const unit = parseInt($('#frequency-unit').val());
+        const frequency = value * unit;
+
+        // Validate frequency
+        if (isNaN(value) || value <= 0) {
+            $('#frequency-error').show();
+            return;
+        }
+        $('#frequency-error').hide();
+
+        // Send the new frequency to the server
+        $.ajax({
+            url: '/set-frequency/',
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' }, // Include CSRF token
+            data: JSON.stringify({ frequency }),
+            contentType: 'application/json',
+            success: function (response) {
+                if (response.success) {
+                    alert('Frequency updated successfully!');
+                } else {
+                    alert(response.error);
+                }
+            },
+            error: function () {
+                alert('Failed to update the frequency. Please try again.');
+            }
+        });
+    });
+</script>
+
         
     <script>
         $(document).ready(function() {
