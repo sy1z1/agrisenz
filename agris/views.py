@@ -8,12 +8,29 @@ from django.core.serializers import serialize
 from django.utils.timezone import localtime
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
+from django.contrib import messages
 
 
 def admin_dashboard(request):
     # Fetch the current status of the fetching setting
     setting, created = Settings.objects.get_or_create(name='fetching_enabled', defaults={'value': False})
-    context = {'fetching_enabled': setting.value}
+    
+    if request.method == 'POST' and 'delete_all_data' in request.POST:
+        # Delete all sensor data
+        NPKSensor.objects.all().delete()
+        AmbientSensor.objects.all().delete()
+        SoilSensor.objects.all().delete()
+        
+        # Add a success message
+        messages.success(request, "All sensor data has been successfully deleted.")
+        context = {
+            'message': 'All sensor data has been successfully deleted'
+        }
+        return redirect('admin_dashboard', context)  # Redirect to avoid form resubmission
+    
+    context = {
+        'fetching_enabled': setting.value,
+    }
     return render(request, "admin/adminDashboard.html", context)
 
 def toggle_fetching(request):
