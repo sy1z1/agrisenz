@@ -104,69 +104,96 @@
         <h1>The API recording has been disabled by the admin.</h1>
         <p>You can still get the report database and real-time data visual on the top but the graph and the API recording to the database has been stopped.</p>
     </div>
-<script>
+    <script>
         // Initialize the chart
-        var chart;
-        var dataSet;
-
         anychart.onDocumentReady(function() {
-            chart = anychart.line();
+            var chart = anychart.line();
+    
+            // Set chart title
             chart.title("NPK Sensor Data");
-            dataSet = anychart.data.set([]);
+    
+            // Create an empty data set
+            var dataSet = anychart.data.set([]);
+    
+            // Set the chart data
             chart.data(dataSet);
-            // Create line series
-            chart.line(dataSet.mapAs({ x: 'timestamp', value: 'nitrogen' })).name('Nitrogen').color('#00A7E1');
-            chart.line(dataSet.mapAs({ x: 'timestamp', value: 'phosphorus' })).name('Phosphorus').color('#F4AE63');
-            chart.line(dataSet.mapAs({ x: 'timestamp', value: 'potassium' })).name('Potassium').color('#808080');
+    
+            // Create a line series for each sensor data type with custom colors
+            var nitrogenSeries = chart.line(dataSet.mapAs({ x: 'timestamp', value: 'nitrogen' })).name('Nitrogen');
+            nitrogenSeries.color('#00A7E1'); // Customize Nitrogen line color
+    
+            var phosphorusSeries = chart.line(dataSet.mapAs({ x: 'timestamp', value: 'phosphorus' })).name('Phosphorus');
+            phosphorusSeries.color('#F4AE63'); // Customize Phosphorus line color
+    
+            var potassiumSeries = chart.line(dataSet.mapAs({ x: 'timestamp', value: 'potassium' })).name('Potassium');
+            potassiumSeries.color('#808080'); // Customize Potassium line color
+    
+            // Customize the legend
+            chart.legend().enabled(true);
+            chart.legend().fontSize(12); // Set legend font size
+            chart.legend().padding(10); // Set padding around the legend
+            chart.legend().background().fill('#FFFFFF'); // Set legend background color
+            chart.legend().itemsLayout('horizontal'); // Set layout of legend items
+    
+            // Set the container id
             chart.container('container-graph');
+    
+            // Draw the chart
             chart.draw();
-
+    
+            // Function to fetch data from the server
+            function fetchAndUpdateData() {
+                $.ajax({
+                    url: '/fetch-sensor-data/',
+                    method: 'GET',
+                    success: function(response) {
+                        if (response.success) {
+                            // Clear the existing data
+                            dataSet.data([]);
+    
+                            // Determine the interval based on the selected option
+                            var interval = parseInt($('#frequency-selector').val());
+                            var filteredData = [];
+    
+                            // Reverse the response data to have the latest data on the right
+                            response.data.reverse();
+    
+                            // Add new data to the data set and filter based on the selected interval
+                            response.data.forEach(function(item, index) {
+                                if (index % (interval / 30000) === 0) { // 30000 ms = 30 seconds
+                                    filteredData.push({ x: item.timestamp, nitrogen: item.nitrogen, phosphorus: item.phosphorus, potassium: item.potassium });
+                                }
+                            });
+    
+                            // Update the chart with new filtered data
+                            dataSet.data(filteredData);
+                            chart.data(dataSet);
+                            $('#error-message').hide(); // Hide error message if fetching is enabled
+                        } else {
+                            // If fetching is disabled, show the error message and stop further calls
+                            $('#container-graph').hide(); // Hide the chart
+                            $('#frequency-selector').hide(); // Hide the frequency selector
+                            $('#download-button').hide(); // Hide the download button $('#error-message').show(); // Show the error message
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Failed to fetch data:', error);
+                    }
+                });
+            }
+    
             // Fetch data initially
             fetchAndUpdateData();
+    
             // Set interval to fetch data every 30 seconds
             setInterval(fetchAndUpdateData, 30000);
-        });
-
-        // Function to fetch data from the server
-        function fetchAndUpdateData() {
-            $.ajax({
-                url: '/fetch-sensor-data/',
-                method: 'GET',
-                success: function(response) {
-                    if (response.success) {
-                        // Clear the existing data
-                        dataSet.data([]);
-                        var interval = parseInt($('#frequency-selector').val());
-                        var filteredData = [];
-                        response.data.reverse();
-                        response.data.forEach(function(item, index) {
-                            if (index % (interval / 30000) === 0) {
-                                filteredData.push({ x: item.timestamp, nitrogen: item.nitrogen, phosphorus: item.phosphorus, potassium: item.potassium });
-                            }
-                        });
-                        dataSet.data(filteredData);
-                        chart.data(dataSet);
-                        $('#error-message').hide(); // Hide error message if fetching is enabled
-                    } else {
-                        // If fetching is disabled, show the error message and stop further calls
-                        $('#container-graph').hide(); // Hide the chart
-                        $('#frequency-selector').hide(); // Hide the chart
-                        $('#download-button').hide(); // Hide the chart
-                        $('#error-message').show(); // Show the error message
-                        clearInterval(fetchInterval); // Stop the interval
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Failed to fetch data:', error);
-                }
+    
+            // Event listener for frequency selector
+            $('#frequency-selector').change(function() {
+                fetchAndUpdateData(); // Fetch and update data when the selection changes
             });
-        }
-
-        // Event listener for frequency selector
-        $('#frequency-selector').change(function() {
-            fetchAndUpdateData(); // Fetch and update data when the selection changes
         });
-
+    
         // AJAX call to fetch and save data every 30 seconds
         function fetchAndSaveData() {
             $.ajax({
@@ -184,9 +211,9 @@
                 }
             });
         }
-
+    
         // Start fetching data when the page loads
-        var fetchInterval = setInterval(fetchAndSaveData, 30000);
+        setInterval(fetchAndSaveData, 30000);
     </script>
 </body>
 </html>
