@@ -344,15 +344,45 @@
                     {% endfor %}
                 </tbody>
             </table>
-            <nav aria-label="NPK pagination">
-                <ul class="pagination">
-                    {% for page_num in npk_data.paginator.page_range %}
-                        <li class="page-item {% if npk_data.number == page_num %}active{% endif %}">
-                            <a class="page-link" href="?npk_page={{ page_num }}">{{ page_num }}</a>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </nav>
+            <nav aria-label="Pagination">
+              <ul class="pagination">
+                  <!-- Previous Button -->
+                  {% if npk_data.has_previous %}
+                  <li class="page-item">
+                      <a class="page-link" href="?npk_page={{ npk_data.previous_page_number }}" aria-label="Previous">
+                          &laquo; Previous
+                      </a>
+                  </li>
+                  {% else %}
+                  <li class="page-item disabled">
+                      <span class="page-link">&laquo; Previous</span>
+                  </li>
+                  {% endif %}
+          
+                  <!-- Numbered Pages with Range -->
+                  {% for page_num in npk_data.paginator.page_range %}
+                      {% if page_num > npk_data.number|add:'-5' and page_num < npk_data.number|add:'5' %}
+                      <li class="page-item {% if npk_data.number == page_num %}active{% endif %}">
+                          <a class="page-link" href="?npk_page={{ page_num }}">{{ page_num }}</a>
+                      </li>
+                      {% endif %}
+                  {% endfor %}
+          
+                  <!-- Next Button -->
+                  {% if npk_data.has_next %}
+                  <li class="page-item">
+                      <a class="page-link" href="?npk_page={{ npk_data.next_page_number }}" aria-label="Next">
+                          Next &raquo;
+                      </a>
+                  </li>
+                  {% else %}
+                  <li class="page-item disabled">
+                      <span class="page-link">Next &raquo;</span>
+                  </li>
+                  {% endif %}
+              </ul>
+              <p>Page {{ npk_data.number }} of {{ npk_data.paginator.num_pages }}</p>
+          </nav>
     
             <!-- Ambient Sensor Table -->
             <h3>Ambient Sensor Data</h3>
@@ -374,15 +404,45 @@
                     {% endfor %}
                 </tbody>
             </table>
-            <nav aria-label="Ambient pagination">
-                <ul class="pagination">
-                    {% for page_num in ambient_data.paginator.page_range %}
-                        <li class="page-item {% if ambient_data.number == page_num %}active{% endif %}">
-                            <a class="page-link" href="?ambient_page={{ page_num }}">{{ page_num }}</a>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </nav>
+            <nav aria-label="Pagination">
+              <ul class="pagination">
+                  <!-- Previous Button -->
+                  {% if ambient_data.has_previous %}
+                  <li class="page-item">
+                      <a class="page-link" href="?ambient_page={{ ambient_data.previous_page_number }}" aria-label="Previous">
+                          &laquo; Previous
+                      </a>
+                  </li>
+                  {% else %}
+                  <li class="page-item disabled">
+                      <span class="page-link">&laquo; Previous</span>
+                  </li>
+                  {% endif %}
+          
+                  <!-- Numbered Pages with Range -->
+                  {% for page_num in ambient_data.paginator.page_range %}
+                      {% if page_num > ambient_data.number|add:'-5' and page_num < ambient_data.number|add:'5' %}
+                      <li class="page-item {% if ambient_data.number == page_num %}active{% endif %}">
+                          <a class="page-link" href="?ambient_page={{ page_num }}">{{ page_num }}</a>
+                      </li>
+                      {% endif %}
+                  {% endfor %}
+          
+                  <!-- Next Button -->
+                  {% if ambient_data.has_next %}
+                  <li class="page-item">
+                      <a class="page-link" href="?ambient_page={{ ambient_data.next_page_number }}" aria-label="Next">
+                          Next &raquo;
+                      </a>
+                  </li>
+                  {% else %}
+                  <li class="page-item disabled">
+                      <span class="page-link">Next &raquo;</span>
+                  </li>
+                  {% endif %}
+              </ul>
+              <p>Page {{ ambient_data.number }} of {{ ambient_data.paginator.num_pages }}</p>
+          </nav>
     
             <!-- Soil Sensor Table -->
             <h3>Soil Sensor Data</h3>
@@ -404,15 +464,45 @@
                     {% endfor %}
                 </tbody>
             </table>
-            <nav aria-label="Soil pagination">
-                <ul class="pagination">
-                    {% for page_num in soil_data.paginator.page_range %}
-                        <li class="page-item {% if soil_data.number == page_num %}active{% endif %}">
-                            <a class="page-link" href="?soil_page={{ page_num }}">{{ page_num }}</a>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </nav>
+            <nav aria-label="Pagination">
+              <ul class="pagination">
+                  <!-- Previous Button -->
+                  {% if soil_data.has_previous %}
+                  <li class="page-item">
+                      <a class="page-link" href="?soil_page={{ soil_data.previous_page_number }}" aria-label="Previous">
+                          &laquo; Previous
+                      </a>
+                  </li>
+                  {% else %}
+                  <li class="page-item disabled">
+                      <span class="page-link">&laquo; Previous</span>
+                  </li>
+                  {% endif %}
+          
+                  <!-- Numbered Pages with Range -->
+                  {% for page_num in soil_data.paginator.page_range %}
+                      {% if page_num > soil_data.number|add:'-5' and page_num < soil_data.number|add:'5' %}
+                      <li class="page-item {% if soil_data.number == page_num %}active{% endif %}">
+                          <a class="page-link" href="?soil_page={{ page_num }}">{{ page_num }}</a>
+                      </li>
+                      {% endif %}
+                  {% endfor %}
+          
+                  <!-- Next Button -->
+                  {% if soil_data.has_next %}
+                  <li class="page-item">
+                      <a class="page-link" href="?soil_page={{ soil_data.next_page_number }}" aria-label="Next">
+                          Next &raquo;
+                      </a>
+                  </li>
+                  {% else %}
+                  <li class="page-item disabled">
+                      <span class="page-link">Next &raquo;</span>
+                  </li>
+                  {% endif %}
+              </ul>
+              <p>Page {{ soil_data.number }} of {{ soil_data.paginator.num_pages }}</p>
+          </nav>
         </div>
         <div class="footer">
           <p>Powered by Mapskart Technology</p>
